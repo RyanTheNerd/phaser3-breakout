@@ -1,15 +1,30 @@
 import Phaser from "phaser";
+import start from "./assets/start.png";
 
 const COLOR = 0xff6600;
 
-let mainScene = new Phaser.Scene('main');
+let startScene = new Phaser.Scene('start');
+
+startScene.preload = function() {
+    this.load.image('start', start);
+    this.scene.add('main', mainScene, false);
+}
+startScene.create = function() {
+    this.add.image(400, 300, 'start');
+    this.space = this.input.keyboard.addKey("SPACE");
+}
+startScene.update = function() {
+    if(this.space.isDown) {
+        this.scene.start('main');
+    }
+}
 
 var config = {
     type: Phaser.AUTO,
     width: 800,
     height: 600,
     resolution: window.devicePixelRatio,
-    scene: mainScene,
+    scene: startScene,
     physics: {
         default: 'arcade',
         arcade: {
@@ -18,6 +33,8 @@ var config = {
         }
     }
 };
+
+let mainScene = new Phaser.Scene('main');
 
 mainScene.preload = function()
 {
@@ -56,6 +73,7 @@ mainScene.preload = function()
         }
         return false;
     }
+    
 }
 
 mainScene.create = function()
@@ -114,13 +132,16 @@ mainScene.create = function()
 mainScene.update = function() {
     this.paddle.setVelocity(0, 0);
 
-    if(this.keys.SPACE.isDown) {
+    if(this.keys.SPACE.isDown && this.ball.body.enable) {
         this.ball.onPaddle = false;
         this.physics.velocityFromAngle(
             90 + Phaser.Math.Between(-45, 45), 
             this.ballSpeed, 
             this.ball.body.velocity,
         );
+    }
+    else if (this.keys.SPACE.isDown && this.ball.body.enable == false) {
+        this.scene.start('main');
     }
 
     if (this.leftIsDown()) {
@@ -136,7 +157,7 @@ mainScene.update = function() {
     }
 
     if (this.ball.y >= 600) {
-        this.ball.destroy();
+        this.ball.disableBody();
         this.add.text(400, 300, 'Oops, you lost.', {fontFamily: 'Roboto Mono'});
     }
 }
