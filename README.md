@@ -2,7 +2,7 @@
 
 A Phaser 3 breakout clone with ES6 support via [Babel 7](https://babeljs.io/) and [Webpack 4](https://webpack.js.org/)
 
-A live demo can be found [Here](https://haggleforth.com/phaser3-breakout)
+A live demo can be found [Here](https://haggleforth.com/phaser3-breakout/dist/)
 
 
 ## Requirements
