@@ -39,7 +39,19 @@ mainScene.preload = function()
     ballImg.generateTexture('ball', ballRadius*2, ballRadius*2);
     ballImg.visible = false;
 
-    this.cursors = this.input.keyboard.createCursorKeys();
+    this.keys = this.input.keyboard.addKeys('A, D, LEFT, RIGHT, H, L');
+    this.leftIsDown = function() {
+        if(this.keys.A.isDown || this.keys.LEFT.isDown || this.keys.H.isDown) {
+            return true;
+        }
+        return false;
+    }
+    this.rightIsDown = function() {
+        if(this.keys.D.isDown || this.keys.RIGHT.isDown || this.keys.L.isDown) {
+            return true;
+        }
+        return false;
+    }
 }
 
 mainScene.create = function()
@@ -98,10 +110,10 @@ mainScene.create = function()
 
 mainScene.update = function() {
     this.paddle.setVelocity(0, 0);
-    if (this.cursors.left.isDown) {
+    if (this.leftIsDown()) {
         this.paddle.setVelocityX(-this.paddle.speed);
     }
-    else if (this.cursors.right.isDown) {
+    else if (this.rightIsDown()) {
         this.paddle.setVelocityX(this.paddle.speed);
     }
 
