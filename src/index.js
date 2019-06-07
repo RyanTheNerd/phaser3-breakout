@@ -87,6 +87,10 @@ mainScene.create = function()
         this.ballSpeed++;
         brick.destroy();
         this.score++;
+        if(this.bricks.countActive() == 0) {
+            this.add.text(400, 300, 'Woah, you won.', {fontFamily: 'Roboto Mono'});
+            this.ball.destroy();
+        }
     }, null, this);
 
 
