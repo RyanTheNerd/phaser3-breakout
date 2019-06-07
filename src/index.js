@@ -13,17 +13,19 @@ var config = {
     physics: {
         default: 'arcade',
         arcade: {
-            debug: true,
+            debug: false,
         }
     }
 };
 
 mainScene.preload = function()
 {
+    let paddleWidth = 75;
+    let paddleHeight = 10;
     let paddleImg = this.add.graphics();
     paddleImg.fillStyle(COLOR, 1.0);
-    paddleImg.fillRect(0, 0, 150, 20);
-    paddleImg.generateTexture('paddle', 150, 20);
+    paddleImg.fillRect(0, 0, paddleWidth, paddleHeight);
+    paddleImg.generateTexture('paddle', paddleWidth, paddleHeight);
     paddleImg.visible = false;
 
     let brickImg = this.add.graphics();
@@ -33,13 +35,14 @@ mainScene.preload = function()
     brickImg.visible = false;
 
     let ballRadius = 10;
+    this.ballRadius = ballRadius;
     let ballImg = this.add.graphics();
     ballImg.fillStyle(COLOR, 1.0);
     ballImg.fillCircle(ballRadius, ballRadius, ballRadius);
     ballImg.generateTexture('ball', ballRadius*2, ballRadius*2);
     ballImg.visible = false;
 
-    this.keys = this.input.keyboard.addKeys('A, D, LEFT, RIGHT, H, L');
+    this.keys = this.input.keyboard.addKeys('A, D, LEFT, RIGHT, H, L, SPACE');
     this.leftIsDown = function() {
         if(this.keys.A.isDown || this.keys.LEFT.isDown || this.keys.H.isDown) {
             return true;
@@ -56,26 +59,26 @@ mainScene.preload = function()
 
 mainScene.create = function()
 {
+    this.physics.world.setFPS(60);
     this.physics.world.setBounds(0, 0, 800, 600);
     this.physics.world.setBoundsCollision(true, true, true, false);
 
     this.paddle = this.physics.add.sprite(400, 580, 'paddle');
-    this.paddle.speed = 500;
+    this.paddle.speed = 750;
     this.paddle.body.immovable = true;
     this.paddle.body.collideWorldBounds = true;
 
-    this.ball = this.physics.add.sprite(400, 300, 'ball');
+    this.ball = this.physics.add.sprite(this.paddle.x, this.paddle.y - this.ballRadius - this.paddle.height/2, 'ball');
     this.ball.body.collideWorldBounds = true;
     this.ball.body.bounce.setTo(1);
-    this.ballSpeed = 400;
+    this.ballSpeed = 600;
+    this.ball.onPaddle = true;
 
-    this.physics.velocityFromAngle(
-        (Math.random() > 0.5 ? 90 : -90) + Phaser.Math.Between(-45, 45), 
-        this.ballSpeed, 
-        this.ball.body.velocity,
-    );
 
     this.physics.add.collider(this.paddle, this.ball, function(paddle, ball) {
+        if(ball.onPaddle) {
+            return;
+        }
         let newAngle = ((this.ball.x - this.paddle.x) / this.paddle.width)*2;        
         if (Math.abs(newAngle) > 0.5) {
             this.physics.velocityFromAngle(
@@ -110,11 +113,26 @@ mainScene.create = function()
 
 mainScene.update = function() {
     this.paddle.setVelocity(0, 0);
+
+    if(this.keys.SPACE.isDown) {
+        this.ball.onPaddle = false;
+        this.physics.velocityFromAngle(
+            90 + Phaser.Math.Between(-45, 45), 
+            this.ballSpeed, 
+            this.ball.body.velocity,
+        );
+    }
+
     if (this.leftIsDown()) {
         this.paddle.setVelocityX(-this.paddle.speed);
     }
     else if (this.rightIsDown()) {
         this.paddle.setVelocityX(this.paddle.speed);
+    }
+
+    if(this.ball.onPaddle) {
+        this.ball.x = this.paddle.x;
+        this.ball.y = this.paddle.y - this.ball.height/2 - this.paddle.height/2;
     }
 
     if (this.ball.y >= 600) {
