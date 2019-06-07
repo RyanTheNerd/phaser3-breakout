@@ -14,6 +14,7 @@ var config = {
         default: 'arcade',
         arcade: {
             debug: false,
+            fps: 60,
         }
     }
 };
@@ -59,7 +60,6 @@ mainScene.preload = function()
 
 mainScene.create = function()
 {
-    this.physics.world.setFPS(60);
     this.physics.world.setBounds(0, 0, 800, 600);
     this.physics.world.setBoundsCollision(true, true, true, false);
 
