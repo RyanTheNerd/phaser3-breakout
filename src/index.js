@@ -1,7 +1,6 @@
 import Phaser from "phaser";
-import ballImg from './assets/ball.png';
-import paddleImg from './assets/paddle.png';
-import brickImg from './assets/brick.png';
+
+const COLOR = 0xff6600;
 
 let mainScene = new Phaser.Scene('main');
 
@@ -21,9 +20,25 @@ var config = {
 
 mainScene.preload = function()
 {
-    this.load.image('ball', ballImg);
-    this.load.image('brick', brickImg);
-    this.load.image('paddle', paddleImg); 
+    let paddleImg = this.add.graphics();
+    paddleImg.fillStyle(COLOR, 1.0);
+    paddleImg.fillRect(0, 0, 150, 20);
+    paddleImg.generateTexture('paddle', 150, 20);
+    paddleImg.visible = false;
+
+    let brickImg = this.add.graphics();
+    brickImg.fillStyle(COLOR, 1.0);
+    brickImg.fillRect(0, 0, 80, 30);
+    brickImg.generateTexture('brick', 80, 30);
+    brickImg.visible = false;
+
+    let ballRadius = 10;
+    let ballImg = this.add.graphics();
+    ballImg.fillStyle(COLOR, 1.0);
+    ballImg.fillCircle(ballRadius, ballRadius, ballRadius);
+    ballImg.generateTexture('ball', ballRadius*2, ballRadius*2);
+    ballImg.visible = false;
+
     this.cursors = this.input.keyboard.createCursorKeys();
 }
 
@@ -33,14 +48,14 @@ mainScene.create = function()
     this.physics.world.setBoundsCollision(true, true, true, false);
 
     this.paddle = this.physics.add.sprite(400, 580, 'paddle');
-    this.paddle.speed = 300;
+    this.paddle.speed = 500;
     this.paddle.body.immovable = true;
     this.paddle.body.collideWorldBounds = true;
 
     this.ball = this.physics.add.sprite(400, 300, 'ball');
     this.ball.body.collideWorldBounds = true;
     this.ball.body.bounce.setTo(1);
-    this.ballSpeed = 300;
+    this.ballSpeed = 400;
 
     this.physics.velocityFromAngle(
         (Math.random() > 0.5 ? 90 : -90) + Phaser.Math.Between(-45, 45), 
@@ -48,7 +63,32 @@ mainScene.create = function()
         this.ball.body.velocity,
     );
 
-    this.physics.add.collider(this.paddle, this.ball);
+    this.physics.add.collider(this.paddle, this.ball, function(paddle, ball) {
+        let newAngle = ((this.ball.x - this.paddle.x) / this.paddle.width)*2;        
+        if (Math.abs(newAngle) > 0.5) {
+            this.physics.velocityFromAngle(
+                newAngle*45 - 90,
+                this.ballSpeed,
+                this.ball.body.velocity,
+            );
+        }
+    }, null, this);
+
+    this.bricks = this.physics.add.group({'immovable': true});
+    for(let i = 0; i < 8; i++) {
+        for(let j = 0; j < 4; j++) {
+            let brick = this.add.sprite((i*100) + 50, (j*50) + 25, 'brick');
+            this.bricks.add(brick);
+        }
+    }
+
+    this.score = 0;
+    this.physics.add.collider(this.ball, this.bricks, function(ball, brick) {
+        this.ballSpeed++;
+        brick.destroy();
+        this.score++;
+    }, null, this);
+
 
 }
 
